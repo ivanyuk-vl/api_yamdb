@@ -2,7 +2,10 @@ from django.contrib.auth import get_user_model
 from django.db import models
 
 User = get_user_model()
-REVIEW_STR = 'id: {}, Автор: {}, Дата публикации {}, Оценка: {}, Текст: {}'
+REVIEW_STR = (
+    'id: {}, Произведение: {}, Автор: {}, Дата публикации {}, '
+    'Оценка: {}, Текст: {}'
+)
 COMMENT_STR = 'id: {}, review_id: {}, Автор: {}, Дата публикации {}, Текст: {}'
 
 
@@ -11,10 +14,13 @@ class Title(models.Model):
 
 
 class Review(models.Model):
-    text = models.TextField(
-        verbose_name='текст',
-        help_text='Текст отзыва'
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        verbose_name='произведение'
     )
+    text = models.TextField(verbose_name='текст', help_text='Текст отзыва')
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -33,10 +39,13 @@ class Review(models.Model):
 
     class Meta:
         constraints = [
+            models.UniqueConstraint(
+                fields=('title', 'author'), name='unique_review'
+            ),
             models.CheckConstraint(
                 check=models.Q(score__range=(1, 10)),
                 name='score_range_1-10'
-            )
+            ),
         ]
         verbose_name = 'отзыв'
         verbose_name_plural = 'отзывы'
@@ -44,6 +53,7 @@ class Review(models.Model):
     def __str__(self):
         return REVIEW_STR.format(
             self.pk,
+            self.title.pk,
             self.author.username,
             self.pub_date.strftime('%d.%m.%Y %H:%M:%S'),
             self.score,
