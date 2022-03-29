@@ -6,6 +6,10 @@ REVIEW_STR = 'id: {}, Автор: {}, Дата публикации {}, Оцен
 COMMENT_STR = 'id: {}, review_id: {}, Автор: {}, Дата публикации {}, Текст: {}'
 
 
+class Title(models.Model):
+    pass
+
+
 class Review(models.Model):
     text = models.TextField(
         verbose_name='текст',
