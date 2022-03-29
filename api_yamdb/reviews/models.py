@@ -30,8 +30,8 @@ class Review(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                check=models.Q(score__gte=1, score__lte=10),
-                name='score_gte_1_&_lte_10'
+                check=models.Q(score__range=(1, 10)),
+                name='score_range_1-10'
             )
         ]
         verbose_name = 'отзыв'
