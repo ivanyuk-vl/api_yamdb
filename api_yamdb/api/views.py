@@ -11,8 +11,16 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+
+    def get_title(self):
+        return get_object_or_404(Title, id=self.kwargs.get('title_id'))
+
+    def get_queryset(self):
+        return self.get_title().reviews
+
+    def perform_create(self, serializer):
+        serializer.save(title=self.get_title())
 
 
 class CommentViewSet(viewsets.ModelViewSet):

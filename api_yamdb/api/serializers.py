@@ -27,7 +27,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
+        exclude = ('title',)
         model = Review
         read_only_fields = ('pub_date',)
 
