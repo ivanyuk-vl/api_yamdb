@@ -2,9 +2,20 @@ from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
-from reviews.models import Comment, Review, Title, User
+from reviews.models import Comment, Review, Title
+from users.models import ROLES, User
 
 SCORE_ERROR = 'Оценка должна быть в пределах от 1 до 10 включительно'
+
+
+class UserSerializer(serializers.ModelSerializer):
+    role = serializers.ChoiceField(choices=ROLES)
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email',
+                  'first_name', 'last_name',
+                  'bio', 'role')
 
 
 class TitleSerializer(serializers.ModelSerializer):
