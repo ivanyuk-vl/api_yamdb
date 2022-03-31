@@ -10,7 +10,9 @@ COMMENT_STR = 'id: {}, review_id: {}, Автор: {}, Дата публикац�
 
 
 class Title(models.Model):
-    pass
+    name = models.TextField(
+        verbose_name='название', help_text='Название произведения'
+    )
 
 
 class Review(models.Model):

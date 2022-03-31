@@ -22,24 +22,22 @@ class TitleSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
 
     class Meta:
-        fields = '__all__'
         model = Title
+        fields = '__all__'
 
-    def get_rating(self, obj):
+    def get_rating(self, title):
         return (
-            (obj.reviews.count() or None)
-            and round(obj.reviews.aggregate(Avg('score'))['score__avg'])
+            (title.reviews.count() or None)
+            and round(title.reviews.aggregate(Avg('score'))['score__avg'])
         )
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    author = SlugRelatedField(
-        slug_field='username', queryset=User.objects.all()
-    )
+    author = SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
-        exclude = ('title',)
         model = Review
+        exclude = ('title',)
         read_only_fields = ('pub_date',)
 
     def validate_score(self, score):
@@ -49,11 +47,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = SlugRelatedField(
-        slug_field='username', queryset=User.objects.all()
-    )
+    author = SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
-        exclude = ('review',)
         model = Comment
+        exclude = ('review',)
         read_only_fields = ('pub_date',)

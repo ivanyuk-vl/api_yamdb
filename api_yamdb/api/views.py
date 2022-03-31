@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.generics import get_object_or_404
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from .serializers import (
@@ -9,6 +9,8 @@ from .serializers import (
 )
 from reviews.models import Review, Title
 from users.models import User
+
+UNIQUE_REVIEW_ERROR = 'У пользователя {} уже есть отзыв на произведение {}'
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -45,7 +47,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
-        serializer.save(title=self.get_title())
+        title = self.get_title()
+        if self.request.user.reviews.filter(title=title):
+            raise ValidationError(UNIQUE_REVIEW_ERROR.format(
+                self.request.user, title.name
+            ))
+        serializer.save(title=self.get_title(), author=self.request.user)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -58,4 +65,4 @@ class CommentViewSet(viewsets.ModelViewSet):
         return self.get_review().comments.all()
 
     def perform_create(self, serializer):
-        serializer.save(review=self.get_review())
+        serializer.save(review=self.get_review(), author=self.request.user)
