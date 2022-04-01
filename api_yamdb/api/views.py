@@ -11,7 +11,7 @@ from .serializers import (
 from reviews.models import Review, Title
 from users.models import User
 
-UNIQUE_REVIEW_ERROR = 'У пользователя {} уже есть отзыв на произведение {}'
+UNIQUE_REVIEW_ERROR = 'У пользователя {} уже есть отзыв на произведение "{}"'
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -51,9 +51,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title = self.get_title()
         if self.request.user.reviews.filter(title=title):
-            raise ValidationError(UNIQUE_REVIEW_ERROR.format(
+            raise ValidationError({'detail': UNIQUE_REVIEW_ERROR.format(
                 self.request.user, title.name
-            ))
+            )})
         serializer.save(title=self.get_title(), author=self.request.user)
 
 

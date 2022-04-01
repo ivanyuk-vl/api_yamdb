@@ -3,9 +3,10 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Comment, Review, Title
+from reviews.settings import MAX_SCORE, MIN_SCORE
 from users.models import ROLES, User
 
-SCORE_ERROR = 'Оценка должна быть в пределах от 1 до 10 включительно'
+SCORE_ERROR = 'Оценка должна быть в пределах от {} до {} включительно'
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -41,8 +42,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ('pub_date',)
 
     def validate_score(self, score):
-        if score not in range(1, 11):
-            raise serializers.ValidationError(SCORE_ERROR)
+        if score not in range(MIN_SCORE, MAX_SCORE + 1):
+            raise serializers.ValidationError(SCORE_ERROR.format(
+                MIN_SCORE, MAX_SCORE
+            ))
         return score
 
 

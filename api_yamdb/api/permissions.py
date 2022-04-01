@@ -20,13 +20,14 @@ class IsAdmin(IsAuthenticated):
 class IsModerator(IsAdmin):
     def get_permission(self, request):
         return (
-            super().get_permission(request) or request.user.role == 'moderator'
+            request.user.role == 'moderator' or super().get_permission(request)
         )
 
 
 class IsAuthorOrReadOnly(IsAuthenticatedOrReadOnly, IsModerator):
     def has_object_permission(self, request, view, obj):
         return (
-            IsModerator.has_object_permission(self, request, view, obj)
-            or obj.author == request.user or request.method in SAFE_METHODS
+            request.method in SAFE_METHODS
+            or obj.author == request.user
+            or IsModerator.has_object_permission(self, request, view, obj)
         )

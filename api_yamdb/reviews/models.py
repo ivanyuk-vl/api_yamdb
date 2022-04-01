@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
+from .settings import MAX_SCORE, MIN_SCORE
+
 User = get_user_model()
 REVIEW_STR = (
     'id: {}, Произведение: {}, Автор: {}, Дата публикации {}, '
@@ -45,7 +47,7 @@ class Review(models.Model):
                 fields=('title', 'author'), name='unique_review'
             ),
             models.CheckConstraint(
-                check=models.Q(score__range=(1, 10)),
+                check=models.Q(score__range=(MIN_SCORE, MAX_SCORE)),
                 name='score_range_1-10'
             ),
         ]
