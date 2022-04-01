@@ -1,9 +1,8 @@
-from django.contrib.auth import get_user_model
 from django.db import models
 
 from .settings import MAX_SCORE, MIN_SCORE
+from users.models import User
 
-User = get_user_model()
 REVIEW_STR = (
     'id: {}, Произведение: {}, Автор: {}, Дата публикации {}, '
     'Оценка: {}, Текст: {}'
