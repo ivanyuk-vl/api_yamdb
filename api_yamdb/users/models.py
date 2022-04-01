@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.db import models
 
 ROLES = (
@@ -20,4 +20,5 @@ class CustomUser(AbstractUser):
         return self.username
 
 
+AnonymousUser.role = None
 User = get_user_model()
