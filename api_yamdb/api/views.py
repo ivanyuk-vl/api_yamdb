@@ -2,11 +2,12 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .pagination import CustomPagination
-from .permissions import (AuthUserOrReadOnly, IsAdmin, IsAnonymous,
-                          IsAuthenticated, IsAuthorOrReadOnly)
+from .permissions import (IsAdmin, IsAdminOrReadOnly,
+                          IsAdminOrIsModeratorOrIsAuthorOrReadOnly)
 from .serializers import (CategoriesSerializer, CommentSerializer,
                           GenresSerializer, ReviewSerializer, SignUpSerializer,
                           TitlesSerializer, UserSerializer)
@@ -43,8 +44,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class AuthViewSet(viewsets.ViewSet):
-
-    permission_classes = (IsAnonymous,)
+    permission_classes = (AllowAny,)
 
     @action(methods=['post'], detail=False)
     def signup(self, request):
@@ -75,14 +75,14 @@ class AuthViewSet(viewsets.ViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitlesSerializer
-    permission_classes = (AuthUserOrReadOnly,)
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = CustomPagination
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
-    permission_classes = (AuthUserOrReadOnly,)
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = CustomPagination
     search_fields = ('name',)
 
@@ -90,14 +90,14 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenresSerializer
-    permission_classes = (AuthUserOrReadOnly,)
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = CustomPagination
     search_fields = ('name',)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (IsAdminOrIsModeratorOrIsAuthorOrReadOnly,)
 
     def get_title(self):
         return get_object_or_404(Title, id=self.kwargs.get('title_id'))
@@ -116,7 +116,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (IsAdminOrIsModeratorOrIsAuthorOrReadOnly,)
 
     def get_review(self):
         return get_object_or_404(Review, id=self.kwargs.get('review_id'))
