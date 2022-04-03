@@ -4,24 +4,33 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from .permissions import IsAuthorOrReadOnly
+from .permissions import (IsAdmin, IsAnonymous, IsAuthenticated,
+                          IsAuthorOrReadOnly)
 from .serializers import (
-    CommentSerializer, ReviewSerializer, TitleSerializer, UserSerializer
+    CommentSerializer, ReviewSerializer, SignUpSerializer,
+    TitleSerializer, UserSerializer
 )
 from reviews.models import Review, Title
 from users.models import User
+from users.utils import generate_confirmation_code, get_tokens_for_user
 
 UNIQUE_REVIEW_ERROR = 'У пользователя {} уже есть отзыв на произведение "{}"'
+NOT_FOUND_PARAMS = 'Не найден один или несколько параметров: "{}".'
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
+    permission_classes = (IsAdmin,)
 
-    @action(methods=['get', 'patch'], detail=False)
+    def perform_create(self, serializer):
+        serializer.save(confirmation_code=generate_confirmation_code())
+
+    @action(methods=['get', 'patch'], detail=False,
+            permission_classes=(IsAuthenticated,))
     def me(self, request):
-        instance = get_object_or_404(User, pk=request.user)
+        instance = get_object_or_404(User, pk=request.user.id)
 
         if request.method == 'GET':
             serializer = self.get_serializer(instance)
@@ -31,6 +40,36 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AuthViewSet(viewsets.ViewSet):
+
+    permission_classes = (IsAnonymous,)
+
+    @action(methods=['post'], detail=False)
+    def signup(self, request):
+        # TODO сделать отправку кода на почту !!!
+        confirmation_code = generate_confirmation_code()
+        print('*' * 30, confirmation_code, '*' * 30)
+        request.data['confirmation_code'] = confirmation_code
+
+        serializer = SignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=False)
+    def token(self, request):
+        if (not request.data['username']
+                or not request.data['confirmation_code']):
+            return Response({NOT_FOUND_PARAMS.format('"email" or "username"')},
+                            status.HTTP_400_BAD_REQUEST)
+        user = get_object_or_404(User, username=request.data['username'])
+        if not request.data['confirmation_code'] == user.confirmation_code:
+            return Response({'detail': 'Неверный код подтверждения'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        token = str(get_tokens_for_user(user))
+        return Response({'token': token}, status=status.HTTP_200_OK)
 
 
 class TitleViewSet(viewsets.ModelViewSet):

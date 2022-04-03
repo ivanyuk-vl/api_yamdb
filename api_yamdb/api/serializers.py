@@ -10,13 +10,21 @@ SCORE_ERROR = 'Оценка должна быть в пределах от {} д
 
 
 class UserSerializer(serializers.ModelSerializer):
-    role = serializers.ChoiceField(choices=ROLES)
+    role = serializers.ChoiceField(choices=ROLES, default='user')
 
     class Meta:
         model = User
         fields = ('id', 'username', 'email',
                   'first_name', 'last_name',
                   'bio', 'role')
+
+
+class SignUpSerializer(serializers.ModelSerializer):
+    # confirmation_code = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'confirmation_code')
 
 
 class TitleSerializer(serializers.ModelSerializer):
