@@ -1,8 +1,11 @@
+import datetime
+
+from django.contrib.auth import get_user_model
 from django.db import models
 
 from .settings import MAX_SCORE, MIN_SCORE
-from users.models import User
 
+User = get_user_model()
 REVIEW_STR = (
     'id: {}, Произведение: {}, Автор: {}, Дата публикации {}, '
     'Оценка: {}, Текст: {}'
@@ -10,15 +13,65 @@ REVIEW_STR = (
 COMMENT_STR = 'id: {}, review_id: {}, Автор: {}, Дата публикации {}, Текст: {}'
 
 
-class Title(models.Model):
+YEAR_CHOICES = []
+for r in range(1700, (datetime.datetime.now().year + 1)):
+    YEAR_CHOICES.append((r, r))
+
+
+class Titles(models.Model):
     name = models.TextField(
-        verbose_name='название', help_text='Название произведения'
+        max_length=200,
+        verbose_name='Произведение',
+        help_text='Введите название произведения'
     )
+
+    year = models.IntegerField(
+        choices=YEAR_CHOICES,
+        default=datetime.datetime.now().year,
+        verbose_name='Год создания произведения',
+        help_text='Введите год создания произведения',
+    )
+
+    categories = models.ForeignKey(
+        'Categories',
+        related_name='titles',
+        null=True,
+        on_delete=models.SET_NULL,
+        verbose_name='Категория',
+        help_text='Выберите категорию'
+    )
+
+    genres = models.ManyToManyField(
+        'Genres',
+        related_name='titles',
+        verbose_name='Жанр',
+    )
+
+    def __str__(self):
+        return self.name
+
+
+class Categories(models.Model):
+    name = models.CharField(max_length=256)
+    slug = models.SlugField(max_length=50, unique=True,
+                            verbose_name="URL_Categories")
+
+    def __str__(self):
+        return self.name
+
+
+class Genres(models.Model):
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=255, unique=True,
+                            verbose_name="URL_Genres")
+
+    def __str__(self):
+        return self.name
 
 
 class Review(models.Model):
     title = models.ForeignKey(
-        Title,
+        Titles,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='произведение'
