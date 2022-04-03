@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Categories, Comment, Genres, Review, Titles
+from .models import Categories, Comment, Genres, Review, Title
 
 
 class TitlesAdmin(admin.ModelAdmin):
@@ -22,7 +22,7 @@ class GenresAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
 
-admin.site.register(Titles, TitlesAdmin)
+admin.site.register(Title, TitlesAdmin)
 admin.site.register(Categories, CategoriesAdmin)
 admin.site.register(Genres, GenresAdmin)
 admin.site.register(Review)

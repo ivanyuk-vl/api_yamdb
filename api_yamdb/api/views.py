@@ -10,7 +10,7 @@ from .permissions import (AuthUserOrReadOnly, IsAdmin, IsAnonymous,
 from .serializers import (CategoriesSerializer, CommentSerializer,
                           GenresSerializer, ReviewSerializer, SignUpSerializer,
                           TitlesSerializer, UserSerializer)
-from reviews.models import Review, Titles, Categories, Genres
+from reviews.models import Review, Title, Categories, Genres
 from users.models import User
 from users.utils import generate_confirmation_code, get_tokens_for_user
 
@@ -73,7 +73,7 @@ class AuthViewSet(viewsets.ViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Titles.objects.all()
+    queryset = Title.objects.all()
     serializer_class = TitlesSerializer
     permission_classes = (AuthUserOrReadOnly,)
     pagination_class = CustomPagination
@@ -100,7 +100,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrReadOnly,)
 
     def get_title(self):
-        return get_object_or_404(Titles, id=self.kwargs.get('title_id'))
+        return get_object_or_404(Title, id=self.kwargs.get('title_id'))
 
     def get_queryset(self):
         return self.get_title().reviews.all()

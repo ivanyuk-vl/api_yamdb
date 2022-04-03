@@ -18,7 +18,7 @@ for r in range(1700, (datetime.datetime.now().year + 1)):
     YEAR_CHOICES.append((r, r))
 
 
-class Titles(models.Model):
+class Title(models.Model):
     name = models.TextField(
         max_length=200,
         verbose_name='Произведение',
@@ -71,7 +71,7 @@ class Genres(models.Model):
 
 class Review(models.Model):
     title = models.ForeignKey(
-        Titles,
+        Title,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='произведение'
