@@ -5,13 +5,14 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from .pagination import CustomPagination
-from .permissions import (IsAdmin, IsAdminOrReadOnly,
-                          IsAdminOrIsModeratorOrIsAuthorOrReadOnly)
-from .serializers import (CategoriesSerializer, CommentSerializer,
-                          GenresSerializer, ReviewSerializer, SignUpSerializer,
-                          TitlesSerializer, UserSerializer)
-from reviews.models import Review, Title, Categories, Genres
+from .permissions import (
+    IsAdminOrReadOnly, IsAdminOrIsModeratorOrIsAuthorOrReadOnly
+)
+from .serializers import (
+    CategorySerializer, CommentSerializer, GenreSerializer,
+    ReviewSerializer, SignUpSerializer, TitlesSerializer, UserSerializer
+)
+from reviews.models import Review, Title, Category, Genre
 from users.models import User
 from users.utils import generate_confirmation_code, get_tokens_for_user
 
@@ -23,7 +24,6 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
-    permission_classes = (IsAdmin,)
 
     def perform_create(self, serializer):
         serializer.save(confirmation_code=generate_confirmation_code())
@@ -76,22 +76,19 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitlesSerializer
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = CustomPagination
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Categories.objects.all()
-    serializer_class = CategoriesSerializer
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = CustomPagination
     search_fields = ('name',)
 
 
 class GenreViewSet(viewsets.ModelViewSet):
-    queryset = Genres.objects.all()
-    serializer_class = GenresSerializer
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = CustomPagination
     search_fields = ('name',)
 
 

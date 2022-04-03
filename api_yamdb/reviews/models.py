@@ -1,11 +1,10 @@
 import datetime
 
-from django.contrib.auth import get_user_model
 from django.db import models
 
 from .settings import MAX_SCORE, MIN_SCORE
+from users.models import User
 
-User = get_user_model()
 REVIEW_STR = (
     'id: {}, Произведение: {}, Автор: {}, Дата публикации {}, '
     'Оценка: {}, Текст: {}'
@@ -16,6 +15,24 @@ COMMENT_STR = 'id: {}, review_id: {}, Автор: {}, Дата публикац�
 YEAR_CHOICES = []
 for r in range(1700, (datetime.datetime.now().year + 1)):
     YEAR_CHOICES.append((r, r))
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=256)
+    slug = models.SlugField(max_length=50, unique=True,
+                            verbose_name="URL_Categories")
+
+    def __str__(self):
+        return self.name
+
+
+class Genre(models.Model):
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=255, unique=True,
+                            verbose_name="URL_Genres")
+
+    def __str__(self):
+        return self.name
 
 
 class Title(models.Model):
@@ -33,7 +50,7 @@ class Title(models.Model):
     )
 
     categories = models.ForeignKey(
-        'Categories',
+        Category,
         related_name='titles',
         null=True,
         on_delete=models.SET_NULL,
@@ -42,28 +59,10 @@ class Title(models.Model):
     )
 
     genres = models.ManyToManyField(
-        'Genres',
+        Genre,
         related_name='titles',
         verbose_name='Жанр',
     )
-
-    def __str__(self):
-        return self.name
-
-
-class Categories(models.Model):
-    name = models.CharField(max_length=256)
-    slug = models.SlugField(max_length=50, unique=True,
-                            verbose_name="URL_Categories")
-
-    def __str__(self):
-        return self.name
-
-
-class Genres(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=255, unique=True,
-                            verbose_name="URL_Genres")
 
     def __str__(self):
         return self.name
