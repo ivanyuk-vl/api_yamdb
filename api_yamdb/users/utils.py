@@ -23,5 +23,4 @@ def generate_confirmation_code():
 
 def get_tokens_for_user(user):
     """Запрос нового токена"""
-    refresh = RefreshToken.for_user(user)
-    return refresh.access_token
+    return RefreshToken.for_user(user).access_token

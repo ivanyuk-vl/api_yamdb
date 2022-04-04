@@ -1,4 +1,5 @@
 from django.db.models import Avg
+from django.forms import ValidationError
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
@@ -6,7 +7,8 @@ from reviews.models import Category, Comment, Genre, Review, Title
 from reviews.settings import MAX_SCORE, MIN_SCORE
 from users.models import ROLES, User
 
-SCORE_ERROR = 'Оценка должна быть в пределах от {} до {} включительно'
+SCORE_ERROR = 'Оценка должна быть в пределах от {} до {} включительно.'
+USERNAME_ERROR = 'Недопустимое имя пользователя: "{}".'
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -19,21 +21,31 @@ class UserSerializer(serializers.ModelSerializer):
                   'bio', 'role')
 
 
-class SignUpSerializer(serializers.ModelSerializer):
-    confirmation_code = serializers.CharField(write_only=True)
+class SignUpSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
 
-    class Meta:
-        model = User
-        fields = ('email', 'username', 'confirmation_code')
+    def validate_username(self, username):
+        name = 'me'
+        if username == name:
+            raise ValidationError(USERNAME_ERROR.format(name))
+        return username
+
+
+class CodeSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(required=True)
 
 
 class CategorySerializer(serializers.ModelSerializer):
+
     class Meta:
         fields = ('name', 'slug')
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
+
     class Meta:
         fields = ('name', 'slug')
         model = Genre
