@@ -4,7 +4,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
 
-from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.models import Category, Comment, Genre, Review, GenreTitle, Title
 from reviews.settings import MAX_SCORE, MIN_SCORE
 from users.models import ROLES, User
 
@@ -61,35 +61,43 @@ class SignUpSerializer(serializers.ModelSerializer):
         return username
 
 
-
 class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('name', 'slug')
+        exclude = ('id',)
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('name', 'slug')
+        exclude = ('id',)
         model = Genre
 
 
-class TitlesSerializer(serializers.ModelSerializer):
-    genres = GenreSerializer(many=True, read_only=True)
-    categories = CategorySerializer(read_only=True)
-    rating = serializers.SerializerMethodField()
+class TitleGetSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
 
     class Meta:
         fields = '__all__'
         model = Title
 
-    def get_rating(self, title):
-        return (
-            (title.reviews.count() or None)
-            and round(title.reviews.aggregate(Avg('score'))['score__avg'])
-        )
+
+class TitleSerializer(TitleGetSerializer):
+    genre = SlugRelatedField(
+        queryset=Genre.objects.all(), slug_field='slug', many=True
+    )
+    category = SlugRelatedField(
+        queryset=Category.objects.all(), slug_field='slug'
+    )
+
+    def create(self, validated_data):
+        genres = validated_data.pop('genre')
+        title = Title.objects.create(**validated_data)
+        for genre in genres:
+            GenreTitle.objects.create(title=title, genre=genre)
+        return title
 
 
 class ReviewSerializer(serializers.ModelSerializer):

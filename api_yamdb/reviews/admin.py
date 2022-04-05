@@ -4,10 +4,10 @@ from .models import Category, Comment, Genre, Review, Title
 
 
 class TitlesAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name', 'year', 'categories')
+    list_display = ('pk', 'name', 'year', 'category')
     list_editable = ('name', 'year',)
     search_fields = ('name',)
-    list_filter = ('categories',)
+    list_filter = ('category',)
 
 
 class CategoryAdmin(admin.ModelAdmin):

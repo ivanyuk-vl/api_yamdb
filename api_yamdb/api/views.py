@@ -1,17 +1,19 @@
 from django.core.mail import send_mail
-from rest_framework import filters, status, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from .filters import TitleFilter
 from .permissions import (
     IsAdmin, IsAdminOrReadOnly, IsAdminOrIsModeratorOrIsAuthorOrReadOnly
 )
 from .serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer, MeSerializer,
-    ReviewSerializer, SignUpSerializer, TitlesSerializer,
+    ReviewSerializer, SignUpSerializer, TitleGetSerializer, TitleSerializer,
     TokenSerializer, UserSerializer
 )
 from reviews.models import Review, Title, Category, Genre
@@ -76,22 +78,31 @@ class AuthViewSet(viewsets.ViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitlesSerializer
     permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return TitleGetSerializer
+        return TitleSerializer
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(
+    mixins.CreateModelMixin, mixins.DestroyModelMixin,
+    mixins.ListModelMixin, viewsets.GenericViewSet
+):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
+    lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(CategoryViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    search_fields = ('name',)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
