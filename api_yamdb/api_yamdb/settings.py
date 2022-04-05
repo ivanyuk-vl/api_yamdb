@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from django.conf import settings
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -23,10 +24,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    # 'djoser',
+    'django_filters',
+    'users.apps.UsersConfig',
     'api.apps.ApiConfig',
     'reviews.apps.ReviewsConfig',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -90,7 +93,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 
 TIME_ZONE = 'UTC'
 
@@ -108,66 +111,16 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
 REST_FRAMEWORK = {
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAuthenticated',
-    # ],
-
-    # 'DEFAULT_AUTHENTICATION_CLASSES': [
-    #     'rest_framework_simplejwt.authentication.JWTAuthentication',
-    # ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
 
     'DEFAULT_PAGINATION_CLASS':
     'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 2,
-
-    #  Ограничения на уровне проекта
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.UserRateThrottle',
-        # 'rest_framework.throttling.AnonRateThrottle',
-        # Не будем подключать класс AnonRateThrottle глобально.
-        # Подключим его только в тех view-классах или вьюсетах,
-        # где надо установить лимиты для анонимов
-
-        # Собственный лимит запросов
-        'rest_framework.throttling.ScopedRateThrottle',
-
-    ],
-    # 'DEFAULT_THROTTLE_RATES': {
-    #     'user': '10000/day',  # Лимит для UserRateThrottle,
-    #     количество_запросов/период_времени
-    #     'anon': '1000/day',  # Лимит для AnonRateThrottle
-    #
-    #     # Имена(ключи) для scope придумывает разработчик,
-    #     # в меру собственной фантазии
-    #     #  его можно подключить к отдельным view-классам или вьюсетам;
-    #     #  скоуп указывается в атрибуте throttle_scope
-    #     # 'low_request': '1/minute',
-    #     }
+    'PAGE_SIZE': 10
 }
 
-# Преимущества JWT-токена в том, что прямо в нём записана информация
-# о пользователе и сроке годности токена; системе не нужно каждый раз
-# обращаться к базе данных, чтобы их сопоставить.
-# Токен, созданный по стандарту JWT (JSON Web Token), состоит из трёх частей.
-# Каждая из них записывается в формате JSON:
-# header (англ. «заголовок») содержит служебную информацию;
-# содержит два поля:
-# алгоритм создания подписи — обычно применяется алгоритм HMAC-SHA256 или RSA;
-# тип токена — это строка "JWT".
-
-# payload (англ. «полезная нагрузка») хранит основные данные токена;
-# хранит тип токена, timestamp со сроком его действия и информацию для
-# аутентификации:
-
-# signature (англ. «подпись») — подпись, ключ безопасности для защиты
-# информации.
-# Подпись гарантирует, что содержимое header и payload в токене не было
-# изменено после создания. Специальный алгоритм генерирует подпись на основе
-# содержимого header и payload. При кодировании этот алгоритм использует
-# секретный ключ, который известен только серверу.
-
-# После подготовки каждая из частей кодируется алгоритмом Base64URL.
-# SIMPLE_JWT = {
-#    'ACCESS_TOKEN_LIFETIME': timedelta(days=360),
-#    'AUTH_HEADER_TYPES': ('Bearer',),
-# }
+SIMPLE_JWT = {
+   'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+   'AUTH_HEADER_TYPES': ('Bearer',),
+}

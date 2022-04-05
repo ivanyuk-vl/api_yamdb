@@ -6,8 +6,8 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 YEAR_CHOICES = []
-for r in range(1700, (datetime.datetime.now().year+1)):
-    YEAR_CHOICES.append((r, r))
+for year in range(1700, (datetime.datetime.now().year+1)):
+    YEAR_CHOICES.append((year, year))
 
 
 class Titles(models.Model):
@@ -59,3 +59,4 @@ class Genres(models.Model):
 
     def __str__(self):
         return self.name
+

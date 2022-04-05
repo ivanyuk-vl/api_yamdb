@@ -1,10 +1,11 @@
-from rest_framework import viewsets, status, mixins
+from rest_framework import viewsets
 from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .pagination import CustomPagination
 from .permissions import AuthUserOrReadOnly
-from .serializers import TitlesSerializer, CategoriesSerializer, \
-    GenresSerializer
+from .serializers import (TitlesSerializer, CategoriesSerializer,
+                          GenresSerializer)
 
 from reviews.models import Titles, Categories, Genres
 
@@ -20,6 +21,7 @@ class CategoriesViewSet(viewsets.ModelViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
     permission_classes = (AuthUserOrReadOnly,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     pagination_class = CustomPagination
     search_fields = ('name',)
 
