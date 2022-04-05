@@ -1,3 +1,4 @@
+from django.core.mail import send_mail
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -54,6 +55,13 @@ class AuthViewSet(viewsets.ViewSet):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(confirmation_code=confirmation_code)
+        user = serializer.instance
+        send_mail(
+            'confirmation code',
+            f'"confirmation_code": "{user.confirmation_code}"',
+            None,
+            [user.email]
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(methods=['POST'], detail=False)
