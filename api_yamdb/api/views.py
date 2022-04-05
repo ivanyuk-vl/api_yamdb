@@ -3,16 +3,18 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from .pagination import CustomPagination
-from .permissions import (AuthUserOrReadOnly, IsAdmin, IsAnonymous,
-                          IsAuthenticated, IsAuthorOrReadOnly)
-from .serializers import (CategoriesSerializer, CommentSerializer,
-                          GenresSerializer, MeSerializer, ReviewSerializer,
-                          SignUpSerializer, TokenSerializer,
-                          TitlesSerializer, UserSerializer)
-from reviews.models import Review, Titles, Categories, Genres
+from .permissions import (
+    IsAdmin, IsAdminOrReadOnly, IsAdminOrIsModeratorOrIsAuthorOrReadOnly
+)
+from .serializers import (
+    CategorySerializer, CommentSerializer, GenreSerializer, MeSerializer,
+    ReviewSerializer, SignUpSerializer, TitlesSerializer,
+    TokenSerializer, UserSerializer
+)
+from reviews.models import Review, Title, Category, Genre
 from users.models import User
 from users.utils import generate_confirmation_code, get_tokens_for_user
 
@@ -44,14 +46,11 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class AuthViewSet(viewsets.ViewSet):
-
-    permission_classes = (IsAnonymous,)
+    permission_classes = (AllowAny,)
 
     @action(methods=['POST'], detail=False)
     def signup(self, request):
-        # TODO сделать отправку кода на почту !!!
         confirmation_code = generate_confirmation_code()
-        print('*' * 30, confirmation_code, '*' * 30)
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(confirmation_code=confirmation_code)
@@ -76,34 +75,31 @@ class AuthViewSet(viewsets.ViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Titles.objects.all()
+    queryset = Title.objects.all()
     serializer_class = TitlesSerializer
-    permission_classes = (AuthUserOrReadOnly,)
-    pagination_class = CustomPagination
+    permission_classes = (IsAdminOrReadOnly,)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Categories.objects.all()
-    serializer_class = CategoriesSerializer
-    permission_classes = (AuthUserOrReadOnly,)
-    pagination_class = CustomPagination
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsAdminOrReadOnly,)
     search_fields = ('name',)
 
 
 class GenreViewSet(viewsets.ModelViewSet):
-    queryset = Genres.objects.all()
-    serializer_class = GenresSerializer
-    permission_classes = (AuthUserOrReadOnly,)
-    pagination_class = CustomPagination
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = (IsAdminOrReadOnly,)
     search_fields = ('name',)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (IsAdminOrIsModeratorOrIsAuthorOrReadOnly,)
 
     def get_title(self):
-        return get_object_or_404(Titles, id=self.kwargs.get('title_id'))
+        return get_object_or_404(Title, id=self.kwargs.get('title_id'))
 
     def get_queryset(self):
         return self.get_title().reviews.all()
@@ -119,7 +115,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (IsAdminOrIsModeratorOrIsAuthorOrReadOnly,)
 
     def get_review(self):
         return get_object_or_404(Review, id=self.kwargs.get('review_id'))

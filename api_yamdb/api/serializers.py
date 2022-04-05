@@ -4,11 +4,11 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
 
-from reviews.models import Categories, Comment, Genres, Review, Titles
+from reviews.models import Category, Comment, Genre, Review, Title
 from reviews.settings import MAX_SCORE, MIN_SCORE
 from users.models import ROLES, User
 
-SCORE_ERROR = 'Оценка должна быть в пределах от {} до {} включительно'
+SCORE_ERROR = 'Оценка должна быть в пределах от {} до {} включительно.'
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -61,25 +61,29 @@ class SignUpSerializer(serializers.ModelSerializer):
         return username
 
 
-class CategoriesSerializer(serializers.ModelSerializer):
+
+class CategorySerializer(serializers.ModelSerializer):
+
     class Meta:
         fields = ('name', 'slug')
-        model = Categories
+        model = Category
 
 
-class GenresSerializer(serializers.ModelSerializer):
+class GenreSerializer(serializers.ModelSerializer):
+
     class Meta:
         fields = ('name', 'slug')
-        model = Genres
+        model = Genre
 
 
 class TitlesSerializer(serializers.ModelSerializer):
-    genres = GenresSerializer(many=True, read_only=True)
-    categories = CategoriesSerializer(read_only=True)
+    genres = GenreSerializer(many=True, read_only=True)
+    categories = CategorySerializer(read_only=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('id', 'name', 'year', 'genres', 'categories')
-        model = Titles
+        fields = '__all__'
+        model = Title
 
     def get_rating(self, title):
         return (

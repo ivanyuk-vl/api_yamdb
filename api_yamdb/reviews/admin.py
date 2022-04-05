@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Categories, Comment, Genres, Review, Titles
+from .models import Category, Comment, Genre, Review, Title
 
 
 class TitlesAdmin(admin.ModelAdmin):
@@ -10,20 +10,20 @@ class TitlesAdmin(admin.ModelAdmin):
     list_filter = ('categories',)
 
 
-class CategoriesAdmin(admin.ModelAdmin):
+class CategoryAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'slug',)
     list_editable = ('name',)
     prepopulated_fields = {'slug': ('name',)}
 
 
-class GenresAdmin(admin.ModelAdmin):
+class GenreAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'slug')
     list_editable = ('name',)
     prepopulated_fields = {'slug': ('name',)}
 
 
-admin.site.register(Titles, TitlesAdmin)
-admin.site.register(Categories, CategoriesAdmin)
-admin.site.register(Genres, GenresAdmin)
+admin.site.register(Title, TitlesAdmin)
+admin.site.register(Category, CategoryAdmin)
+admin.site.register(Genre, GenreAdmin)
 admin.site.register(Review)
 admin.site.register(Comment)

@@ -23,7 +23,7 @@ python3 -m venv venv
 ```shell
 source venv/bin/activate
 ```
-Уставновить зависимости
+Установить зависимости
 ```shell
 pip3 install -r requirements.txt
 ```
@@ -37,5 +37,5 @@ python manage.py runserver
 ```
 
 ## API v1
-С возмостями API можно ознакомиться перейдя на по ссылке 
+С возможностями API можно ознакомиться, перейдя по ссылке 
 [http://127.0.0.1/redoc/](http://127.0.0.1/redoc/)
