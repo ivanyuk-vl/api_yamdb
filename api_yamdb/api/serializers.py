@@ -7,7 +7,6 @@ from rest_framework.relations import SlugRelatedField
 from reviews.models import Categories, Comment, Genres, Review, Titles
 from reviews.settings import MAX_SCORE, MIN_SCORE
 from users.models import ROLES, User
-from users.utils import get_tokens_for_user
 
 SCORE_ERROR = 'Оценка должна быть в пределах от {} до {} включительно'
 
@@ -17,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email',
+        fields = ('username', 'email',
                   'first_name', 'last_name',
                   'bio', 'role')
         required_fields = ('username', 'email')
@@ -38,10 +37,10 @@ class TokenSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if 'username' not in self.initial_data:
-            raise ValidationError({'username': 'Обязательное поле...'})
+            raise ValidationError({'username': 'Обязательное поле.'})
         if 'confirmation_code' not in self.initial_data:
             raise ValidationError({
-                'confirmation_code': 'Обязательное поле...'})
+                'confirmation_code': 'Обязательное поле.'})
         user = get_object_or_404(User, username=self.initial_data['username'])
         if (not self.initial_data['confirmation_code']
                 == user.confirmation_code):
