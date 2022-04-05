@@ -1,27 +1,27 @@
 from django.contrib import admin
 
-from .models import Titles, Categories, Genres
+from .models import Category, Genre, Title
 
 
 class TitlesAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name', 'year', 'categories')
+    list_display = ('pk', 'name', 'year', 'category')
     list_editable = ('name', 'year',)
     search_fields = ('name',)
-    list_filter = ('categories',)
+    list_filter = ('category',)
 
 
-class CategoriesAdmin(admin.ModelAdmin):
+class CategoryAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'slug',)
     list_editable = ('name',)
     prepopulated_fields = {'slug': ('name',)}
 
 
-class GenresAdmin(admin.ModelAdmin):
+class GenreAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'slug')
     list_editable = ('name',)
     prepopulated_fields = {'slug': ('name',)}
 
 
-admin.site.register(Titles, TitlesAdmin)
-admin.site.register(Categories, CategoriesAdmin)
-admin.site.register(Genres, GenresAdmin)
+admin.site.register(Title, TitlesAdmin)
+admin.site.register(Category, CategoryAdmin)
+admin.site.register(Genre, GenreAdmin)
