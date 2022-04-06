@@ -4,21 +4,19 @@ from rest_framework.permissions import (
 
 
 class IsAdmin(BasePermission):
-    def get_permission(self, request):
-        return request.user.role == 'admin' or request.user.is_superuser
-
     def has_permission(self, request, view):
-        return self.get_permission(request)
-
-    def has_object_permission(self, request, view, obj):
-        return self.get_permission(request)
+        return request.user.role == 'admin' or request.user.is_superuser
 
 
 class IsAdminOrReadOnly(IsAdmin):
-    def get_permission(self, request):
+    def has_permission(self, request, view):
         return (
-            request.method in SAFE_METHODS or super().get_permission(request)
+            request.method in SAFE_METHODS
+            or super().has_permission(request, view)
         )
+
+    def has_object_permission(self, request, view, obj):
+        return IsAdminOrReadOnly.has_permission(self, request, view)
 
 
 class IsAdminOrIsModeratorOrIsAuthorOrReadOnly(
@@ -26,7 +24,7 @@ class IsAdminOrIsModeratorOrIsAuthorOrReadOnly(
 ):
     def has_object_permission(self, request, view, obj):
         return (
-            self.get_permission(request)
+            IsAdminOrReadOnly.has_object_permission(self, request, view, obj)
             or obj.author == request.user
             or request.user.role == 'moderator'
         )
