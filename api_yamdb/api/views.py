@@ -2,7 +2,6 @@ from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -19,8 +18,6 @@ from .serializers import (
 from reviews.models import Review, Title, Category, Genre
 from users.models import User
 from users.utils import generate_confirmation_code, get_tokens_for_user
-
-UNIQUE_REVIEW_ERROR = 'У пользователя {} уже есть отзыв на произведение "{}"'
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -116,11 +113,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
-        title = self.get_title()
-        if self.request.user.reviews.filter(title=title):
-            raise ValidationError({'detail': UNIQUE_REVIEW_ERROR.format(
-                self.request.user, title.name
-            )})
         serializer.save(title=self.get_title(), author=self.request.user)
 
 
@@ -129,7 +121,11 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrIsModeratorOrIsAuthorOrReadOnly,)
 
     def get_review(self):
-        return get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        return get_object_or_404(
+            Review,
+            id=self.kwargs.get('review_id'),
+            title__id=self.kwargs.get('title_id')
+        )
 
     def get_queryset(self):
         return self.get_review().comments.all()
