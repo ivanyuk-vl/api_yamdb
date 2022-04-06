@@ -28,7 +28,7 @@ class MeSerializer(serializers.ModelSerializer):
         read_only_fields = ('username', 'email', 'role')
 
 
-class TokenSerializer(serializers.ModelSerializer):
+class TokenSerializer(serializers.Serializer):
     token = serializers.CharField(required=False, read_only=True)
 
     class Meta:
