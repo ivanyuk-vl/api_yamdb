@@ -5,10 +5,11 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Category, Comment, Genre, Review, GenreTitle, Title
-from reviews.settings import MAX_SCORE, MIN_SCORE
+from api_yamdb.settings import MAX_SCORE, MIN_SCORE
 from users.models import ROLES, User
 
 SCORE_ERROR = 'Оценка должна быть в пределах от {} до {} включительно.'
+UNIQUE_REVIEW_ERROR = 'У пользователя {} уже есть отзыв на произведение "{}".'
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -121,6 +122,15 @@ class ReviewSerializer(serializers.ModelSerializer):
                 MIN_SCORE, MAX_SCORE
             ))
         return score
+
+    def save(self, **kwargs):
+        author = kwargs.get('author')
+        title = kwargs.get('title')
+        if author and author.reviews.filter(title=title):
+            raise ValidationError({'detail': UNIQUE_REVIEW_ERROR.format(
+                author, title
+            )})
+        return super().save(**kwargs)
 
 
 class CommentSerializer(serializers.ModelSerializer):

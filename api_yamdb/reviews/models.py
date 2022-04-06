@@ -1,26 +1,26 @@
-import datetime
+from datetime import datetime
 
+from django.core.exceptions import ValidationError
 from django.db import models
 
-from .settings import MAX_SCORE, MIN_SCORE
+from api_yamdb.settings import (
+    MAX_SCORE, MIN_SCORE, MIN_TITLE_YEAR
+)
 from users.models import User
 
+CURRENT_YEAR = datetime.now().year
+COMMENT_STR = 'id: {}, review_id: {}, Автор: {}, Дата публикации {}, Текст: {}'
 REVIEW_STR = (
     'id: {}, Произведение: {}, Автор: {}, Дата публикации {}, '
     'Оценка: {}, Текст: {}'
 )
-COMMENT_STR = 'id: {}, review_id: {}, Автор: {}, Дата публикации {}, Текст: {}'
-
-
-YEAR_CHOICES = []
-for r in range(1700, (datetime.datetime.now().year + 1)):
-    YEAR_CHOICES.append((r, r))
+YEAR_ERROR = 'Недопустимый год {}. Год должен быть в пределах {} < year <= {}.'
 
 
 class Category(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True,
-                            verbose_name="URL_Categories")
+                            verbose_name='URL_Categories')
 
     class Meta:
         ordering = ('name',)
@@ -34,7 +34,7 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=255, unique=True,
-                            verbose_name="URL_Genres")
+                            verbose_name='URL_Genres')
 
     class Meta:
         ordering = ('name',)
@@ -45,6 +45,13 @@ class Genre(models.Model):
         return self.name
 
 
+def validate_year(year):
+    if not(MIN_TITLE_YEAR < year <= CURRENT_YEAR):
+        raise ValidationError(YEAR_ERROR.format(
+            year, MIN_TITLE_YEAR, CURRENT_YEAR
+        ))
+
+
 class Title(models.Model):
     name = models.TextField(
         max_length=200,
@@ -52,8 +59,8 @@ class Title(models.Model):
         help_text='Введите название произведения'
     )
     year = models.IntegerField(
-        choices=YEAR_CHOICES,
-        default=datetime.datetime.now().year,
+        default=CURRENT_YEAR,
+        validators=[validate_year],
         verbose_name='Год создания произведения',
         help_text='Введите год создания произведения',
     )
