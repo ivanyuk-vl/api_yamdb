@@ -17,7 +17,7 @@ from .serializers import (
 )
 from reviews.models import Review, Title, Category, Genre
 from users.models import User
-from users.utils import generate_confirmation_code, get_tokens_for_user
+from users.utils import get_tokens_for_user
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -30,7 +30,7 @@ class UserViewSet(viewsets.ModelViewSet):
     ordering = ['username']
 
     def perform_create(self, serializer):
-        serializer.save(confirmation_code=generate_confirmation_code())
+        serializer.save(confirmation_code=User.objects.make_random_password())
 
     @action(methods=['GET', 'PATCH'], detail=False,
             permission_classes=(IsAuthenticated,))
@@ -49,7 +49,7 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(methods=['POST'], detail=False)
     def signup(self, request):
-        confirmation_code = generate_confirmation_code()
+        confirmation_code = User.objects.make_random_password()
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(confirmation_code=confirmation_code)
@@ -57,7 +57,7 @@ class AuthViewSet(viewsets.ViewSet):
         send_mail(
             'confirmation code',
             f'"confirmation_code": "{user.confirmation_code}"',
-            None,
+            None,  # DEFAULT_FROM_EMAIL добавлен в settings
             [user.email]
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
