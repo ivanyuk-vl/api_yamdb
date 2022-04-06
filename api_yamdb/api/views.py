@@ -18,7 +18,7 @@ from .serializers import (
 )
 from reviews.models import Review, Title, Category, Genre
 from users.models import User
-from users.utils import generate_confirmation_code, get_tokens_for_user
+from users.utils import get_tokens_for_user
 
 UNIQUE_REVIEW_ERROR = 'У пользователя {} уже есть отзыв на произведение "{}"'
 
@@ -33,7 +33,7 @@ class UserViewSet(viewsets.ModelViewSet):
     ordering = ['username']
 
     def perform_create(self, serializer):
-        serializer.save(confirmation_code=generate_confirmation_code())
+        serializer.save(confirmation_code=User.objects.make_random_password())
 
     @action(methods=['GET', 'PATCH'], detail=False,
             permission_classes=(IsAuthenticated,))
@@ -52,7 +52,7 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(methods=['POST'], detail=False)
     def signup(self, request):
-        confirmation_code = generate_confirmation_code()
+        confirmation_code = User.objects.make_random_password()
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(confirmation_code=confirmation_code)
