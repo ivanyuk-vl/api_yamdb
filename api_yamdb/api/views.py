@@ -60,7 +60,7 @@ class AuthViewSet(viewsets.ViewSet):
         send_mail(
             'confirmation code',
             f'"confirmation_code": "{user.confirmation_code}"',
-            None,
+            None,  # DEFAULT_FROM_EMAIL добавлен в settings
             [user.email]
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
