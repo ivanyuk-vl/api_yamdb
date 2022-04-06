@@ -17,16 +17,13 @@ class IsAdminOrReadOnly(IsAdmin):
             or super().has_permission(request, view)
         )
 
-    def has_object_permission(self, request, view, obj):
-        return IsAdminOrReadOnly.has_permission(self, request, view)
-
 
 class IsAdminOrIsModeratorOrIsAuthorOrReadOnly(
     IsAuthenticatedOrReadOnly, IsAdminOrReadOnly
 ):
     def has_object_permission(self, request, view, obj):
         return (
-            IsAdminOrReadOnly.has_object_permission(self, request, view, obj)
+            IsAdminOrReadOnly.has_permission(self, request, view)
             or obj.author == request.user
             or request.user.role == UserRole.MODERATOR
         )
