@@ -27,7 +27,7 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdmin,)
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ('username',)
-    ordering = ['username']
+    ordering = ['id']
 
     def perform_create(self, serializer):
         serializer.save(confirmation_code=User.objects.make_random_password())
