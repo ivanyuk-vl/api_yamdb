@@ -28,6 +28,16 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+    @property
+    def is_admin(self):
+        return self.role == UserRole.ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == UserRole.MODERATOR
+
 
 AnonymousUser.role = None
+AnonymousUser.is_admin = False
+
 User = get_user_model()
