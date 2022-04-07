@@ -1,4 +1,6 @@
 from django.core.mail import send_mail
+from django.db.models import Avg, IntegerField
+from django.db.models.functions import Cast, Round
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
@@ -78,7 +80,9 @@ class AuthViewSet(viewsets.ViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Cast(
+        Round(Avg('reviews__score')), IntegerField()
+    ))
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
@@ -89,19 +93,21 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-class CategoryViewSet(
-    mixins.CreateModelMixin, mixins.DestroyModelMixin,
-    mixins.ListModelMixin, viewsets.GenericViewSet
-):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+# Один общий родительский класс
+class CategoryGenreBase(mixins.CreateModelMixin, mixins.DestroyModelMixin,
+                        mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     lookup_field = 'slug'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
 
-class GenreViewSet(CategoryViewSet):
+class CategoryViewSet(CategoryGenreBase):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class GenreViewSet(CategoryGenreBase):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 

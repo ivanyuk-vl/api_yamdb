@@ -1,4 +1,3 @@
-from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.relations import SlugRelatedField
@@ -58,14 +57,12 @@ class SignUpSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         exclude = ('id',)
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
-
     class Meta:
         exclude = ('id',)
         model = Genre
@@ -81,10 +78,7 @@ class TitleGetSerializer(serializers.ModelSerializer):
         model = Title
 
     def get_rating(self, title):
-        return (
-            (title.reviews.count() or None)
-            and round(title.reviews.aggregate(Avg('score'))['score__avg'])
-        )
+        return getattr(title, 'rating', None)
 
 
 class TitleSerializer(TitleGetSerializer):
