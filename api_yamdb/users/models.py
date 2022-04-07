@@ -19,7 +19,8 @@ ROLES = (
 class CustomUser(AbstractUser):
     """Расширенние модели пользователя"""
     email = models.EmailField(unique=True)
-    role = models.CharField(max_length=255, default='user')
+    first_name = models.CharField(max_length=150, blank=True)
+    role = models.CharField(max_length=255, default=UserRole.USER)
     bio = models.CharField(max_length=255, blank=True)
     confirmation_code = models.CharField(max_length=255, blank=True)
     REQUIRED_FIELDS = ['email']
