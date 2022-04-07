@@ -2,6 +2,7 @@ from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -68,6 +69,10 @@ class AuthViewSet(viewsets.ViewSet):
         user = get_object_or_404(
             User,
             username=serializer.validated_data['username'])
+        if (not serializer.validated_data['confirmation_code']
+                == user.confirmation_code):
+            raise ValidationError({'detail': 'Неверный код подтверждения.'})
+
         serializer.validated_data['token'] = get_tokens_for_user(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

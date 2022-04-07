@@ -1,7 +1,6 @@
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Category, Comment, Genre, Review, GenreTitle, Title
@@ -42,10 +41,6 @@ class TokenSerializer(serializers.Serializer):
         if 'confirmation_code' not in self.initial_data:
             raise ValidationError({
                 'confirmation_code': 'Обязательное поле.'})
-        user = get_object_or_404(User, username=self.initial_data['username'])
-        if (not self.initial_data['confirmation_code']
-                == user.confirmation_code):
-            raise ValidationError({'detail': 'Неверный код подтверждения.'})
         return self.initial_data
 
 
