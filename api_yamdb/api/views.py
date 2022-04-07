@@ -37,11 +37,11 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,))
     def me(self, request):
         instance = get_object_or_404(User, pk=request.user.id)
-        serializer = MeSerializer(instance=instance)
-        if request.method == 'PATCH':
-            serializer.initial_data = request.data
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+        self.serializer_class = MeSerializer
+        serializer = self.get_serializer(instance=instance)
+        serializer.initial_data = request.data
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
