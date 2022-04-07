@@ -53,12 +53,11 @@ class AuthViewSet(viewsets.ViewSet):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(confirmation_code=confirmation_code)
-        user = serializer.instance
         send_mail(
             'confirmation code',
-            f'"confirmation_code": "{user.confirmation_code}"',
+            f'"confirmation_code":  {confirmation_code}',
             None,  # DEFAULT_FROM_EMAIL добавлен в settings
-            [user.email]
+            [serializer.validated_data["email"]]
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
