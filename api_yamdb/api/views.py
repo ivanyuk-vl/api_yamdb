@@ -1,4 +1,6 @@
 from django.core.mail import send_mail
+from django.db.models import Avg, IntegerField
+from django.db.models.functions import Cast, Round
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
@@ -77,7 +79,9 @@ class AuthViewSet(viewsets.ViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Cast(
+        Round(Avg('reviews__score')), IntegerField()
+    ))
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter

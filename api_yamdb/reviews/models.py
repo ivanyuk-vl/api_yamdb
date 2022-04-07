@@ -20,7 +20,7 @@ for r in range(1700, (datetime.datetime.now().year + 1)):
 class Category(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True,
-                            verbose_name="URL_Categories")
+                            verbose_name='URL_Categories')
 
     class Meta:
         ordering = ('name',)
@@ -34,7 +34,7 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=255, unique=True,
-                            verbose_name="URL_Genres")
+                            verbose_name='URL_Genres')
 
     class Meta:
         ordering = ('name',)
