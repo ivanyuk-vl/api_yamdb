@@ -57,12 +57,14 @@ class SignUpSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    
     class Meta:
         exclude = ('id',)
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    
     class Meta:
         exclude = ('id',)
         model = Genre
@@ -76,6 +78,7 @@ class TitleGetSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Title
+        read_only_fields = [field.name for field in model._meta.fields]
 
     def get_rating(self, title):
         return getattr(title, 'rating', None)
@@ -88,6 +91,10 @@ class TitleSerializer(TitleGetSerializer):
     category = SlugRelatedField(
         queryset=Category.objects.all(), slug_field='slug'
     )
+
+    class Meta:
+        fields = '__all__'
+        model = Title
 
 
 class ReviewSerializer(serializers.ModelSerializer):

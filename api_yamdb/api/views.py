@@ -82,7 +82,7 @@ class AuthViewSet(viewsets.ViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Cast(
         Round(Avg('reviews__score')), IntegerField()
-    ))
+    )).order_by('name')
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
@@ -93,7 +93,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-# Один общий родительский класс
 class CategoryGenreBase(mixins.CreateModelMixin, mixins.DestroyModelMixin,
                         mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = (IsAdminOrReadOnly,)
