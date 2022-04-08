@@ -5,8 +5,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
 
-import reviews.models
-
 
 def application_existence_check(app_name):
     """Проверка существования указанного приложения"""
@@ -35,7 +33,7 @@ def clear_model(model_class):
 
 
 def create_objects(model_class, file_path):
-
+    """Запись данных из файла"""
     with open(file_path, encoding='UTF-8') as file:
         csv_reader = csv.DictReader(file)
         model_fields = [field.name
@@ -56,6 +54,7 @@ def create_objects(model_class, file_path):
         try:
             # записать объекты в базу
             obj = model_class.objects.bulk_create(objs, len(objs))
+            return obj
         except Exception as ex:
             raise Exception(f'Ошибка звписи объектов в базу: {ex}')
 
@@ -69,25 +68,25 @@ class Command(BaseCommand):
         parser.add_argument('--filename', type=str, help='Имя файла')
         parser.add_argument('--clear',
                             action='store_const', const=True,
-                            help='Удалить данные из объекта')
+                            help='Удалить данные из модели')
 
     def handle(self, *args, **options):
-        for app_class in apps.get_app_configs():
-            print(app_class)
-            for model_class in app_class.get_models():
-                print('*' * 30, model_class)
-
+        """Обработчик команды"""
         app_class = application_existence_check(options['app'])
         model_class = model_existence_check(app_class, options['model'])
 
-        if 'clear' in options:
+        if options['clear'] is not None:
             clear_model(model_class)
+            self.stdout.write('Очистка модели от данных успешно выполнена.')
         else:
             # собрать путь к файлу
             # если имя файла не было передано параметром ищем файл
             # по имени модели
             file_path = (
-                    settings.TEST_DATA_DIR
-                    + (options['filename'] or (options['model'] + '.csv'))
+                settings.TEST_DATA_DIR
+                + (options['filename'] or (options['model'] + '.csv'))
             )
-            create_objects(model_class, file_path)
+            # записать данные в модель из файла
+            objs = create_objects(model_class, file_path)
+            if objs:
+                self.stdout.write('Запись в модель данных успешно выполнена')
