@@ -52,8 +52,16 @@ class AuthViewSet(viewsets.ViewSet):
     def signup(self, request):
         confirmation_code = User.objects.make_random_password()
         serializer = SignUpSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(confirmation_code=confirmation_code)
+        if serializer.is_valid(raise_exception=True):
+            try:
+                user, _ = User.objects.get_or_create(
+                    username=serializer.validated_data['username'],
+                    email=serializer.validated_data['email'],
+                    defaults={'confirmation_code': confirmation_code}
+                )
+            except Exception as ex:
+                return Response({'detail': f'Internal Server Error \'{ex}\''},
+                                status=status.HTTP_400_BAD_REQUEST)
         send_mail(
             'confirmation code',
             f'"confirmation_code":  {confirmation_code}',
