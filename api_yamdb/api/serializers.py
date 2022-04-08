@@ -43,7 +43,9 @@ class TokenSerializer(serializers.Serializer):
         return self.initial_data
 
 
-class SignUpSerializer(serializers.ModelSerializer):
+class SignUpSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    username = serializers.CharField(max_length=150)
     confirmation_code = serializers.CharField(required=False, write_only=True)
 
     class Meta:
