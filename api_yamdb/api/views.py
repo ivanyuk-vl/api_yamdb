@@ -92,7 +92,7 @@ class AuthViewSet(viewsets.ViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Cast(
         Round(Avg('reviews__score')), IntegerField()
-    )).order_by('name')
+    )).order_by('id')
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
