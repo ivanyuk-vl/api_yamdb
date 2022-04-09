@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser, AnonymousUser
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
 
@@ -18,9 +19,17 @@ ROLES = (
 
 class CustomUser(AbstractUser):
     """Расширенние модели пользователя"""
-    email = models.EmailField(unique=True)
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        validators=[UnicodeUsernameValidator()],  # r'^[\w.@+-]+$'
+        error_messages={
+            'unique': 'Пользователь с таким именем уже существует.'},
+    )
+    email = models.EmailField(max_length=254, unique=True)
     first_name = models.CharField(max_length=150, blank=True)
-    role = models.CharField(max_length=255, default=UserRole.USER)
+    last_name = models.CharField(max_length=150, blank=True)
+    role = models.CharField(max_length=9, default=UserRole.USER)
     bio = models.CharField(max_length=255, blank=True)
     confirmation_code = models.CharField(max_length=255, blank=True)
     REQUIRED_FIELDS = ['email']
