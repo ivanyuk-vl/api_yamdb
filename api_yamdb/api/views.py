@@ -62,7 +62,7 @@ class AuthViewSet(viewsets.ViewSet):
                 defaults={'confirmation_code': confirmation_code}
             )
         except Exception as ex:
-            return Response({'detail': f'Internal Server Error \'{ex}\''},
+            return Response({'detail': f'Внутренняя ошибка сервера \'{ex}\''},
                             status=status.HTTP_400_BAD_REQUEST)
         send_mail(
             'confirmation code',
