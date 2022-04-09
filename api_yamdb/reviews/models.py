@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 
 from api_yamdb.settings import (
@@ -33,8 +34,16 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(max_length=256)
-    slug = models.SlugField(max_length=50, unique=True,
-                            verbose_name='URL_Genres')
+    slug = models.SlugField(
+        max_length=50,
+        unique=True,
+        validators=[
+            RegexValidator(
+                regex='^[-a-zA-Z0-9_]+$',
+                message='Hashtag doesnt comply',
+            ),
+        ],
+        verbose_name='URL_Genres')
 
     class Meta:
         ordering = ('name',)
