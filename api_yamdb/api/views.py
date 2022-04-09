@@ -41,9 +41,11 @@ class UserViewSet(viewsets.ModelViewSet):
         instance = get_object_or_404(User, pk=request.user.id)
         self.serializer_class = MeSerializer
         serializer = self.get_serializer(instance=instance)
-        serializer.initial_data = request.data
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        if request.method == 'PATCH':
+            serializer.partial = True
+            serializer.initial_data = request.data
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
