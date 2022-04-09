@@ -54,7 +54,6 @@ def validate_year(year):
 
 class Title(models.Model):
     name = models.TextField(
-        max_length=200,
         verbose_name='Произведение',
         help_text='Введите название произведения'
     )
