@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from django.apps import apps
 from django.core.management.base import BaseCommand
 

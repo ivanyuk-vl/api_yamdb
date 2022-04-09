@@ -59,14 +59,14 @@ class SignUpSerializer(serializers.Serializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         exclude = ('id',)
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         exclude = ('id',)
         model = Genre
