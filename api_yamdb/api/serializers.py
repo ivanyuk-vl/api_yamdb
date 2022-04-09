@@ -107,21 +107,23 @@ class ReviewSerializer(serializers.ModelSerializer):
         exclude = ('title',)
         read_only_fields = ('pub_date',)
 
+    def validate(self, attrs):
+        if self.context['request'].method == 'POST':
+            title = (self.context['request']
+                     .parser_context['kwargs'].get('title_id'))
+            author = self.context['request'].user
+            if author and author.reviews.filter(title=title):
+                raise ValidationError({'detail': UNIQUE_REVIEW_ERROR.format(
+                    author, title
+                )})
+        return super().validate(attrs)
+
     def validate_score(self, score):
         if score not in range(MIN_SCORE, MAX_SCORE + 1):
             raise serializers.ValidationError(SCORE_ERROR.format(
                 MIN_SCORE, MAX_SCORE
             ))
         return score
-
-    def save(self, **kwargs):
-        author = kwargs.get('author')
-        title = kwargs.get('title')
-        if author and author.reviews.filter(title=title):
-            raise ValidationError({'detail': UNIQUE_REVIEW_ERROR.format(
-                author, title
-            )})
-        return super().save(**kwargs)
 
 
 class CommentSerializer(serializers.ModelSerializer):
