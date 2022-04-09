@@ -46,7 +46,7 @@ class Genre(models.Model):
 
 
 def validate_year(year):
-    if not(MIN_TITLE_YEAR < year <= CURRENT_YEAR):
+    if not (MIN_TITLE_YEAR < year <= CURRENT_YEAR):
         raise ValidationError(YEAR_ERROR.format(
             year, MIN_TITLE_YEAR, CURRENT_YEAR
         ))
