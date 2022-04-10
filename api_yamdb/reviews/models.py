@@ -40,7 +40,7 @@ class Genre(models.Model):
         validators=[
             RegexValidator(
                 regex='^[-a-zA-Z0-9_]+$',
-                message='Hashtag doesnt comply',
+                message='Поле не соответствует требованиям^ ^[-a-zA-Z0-9_]+$',
             ),
         ],
         verbose_name='URL_Genres')
