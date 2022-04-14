@@ -77,7 +77,7 @@ import_to_db reviews Category MySuperFile.csv
 import_to_db reviews Category --clear
 ```
 
-**ВНИМАНИЕ!**
+**Внимание!**
 Во избежание ошибки `FOREIGN KEY constraint failed` при загрузке данных с 
 реляционными связями необходимо соблюдать последовательность
 

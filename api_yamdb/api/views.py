@@ -1,9 +1,10 @@
 from django.core.mail import send_mail
 from django.db.models import Avg, IntegerField
 from django.db.models.functions import Cast, Round
+from django.db.utils import IntegrityError
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -18,9 +19,10 @@ from .serializers import (
     ReviewSerializer, SignUpSerializer, TitleGetSerializer, TitleSerializer,
     TokenSerializer, UserSerializer
 )
-from reviews.models import Review, Title, Category, Genre
-from users.models import User
-from users.utils import get_tokens_for_user
+from reviews.models import Review, Title, Category, Genre, User
+from reviews.utils import get_tokens_for_user
+
+UNIQUE_ERROR = 'Пользователь с таким {} уже есть.'
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -30,17 +32,12 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdmin,)
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ('username',)
-    ordering = ['id']
-
-    def perform_create(self, serializer):
-        serializer.save(confirmation_code=User.objects.make_random_password())
+    ordering = ['username']
 
     @action(methods=['GET', 'PATCH'], detail=False,
             permission_classes=(IsAuthenticated,))
     def me(self, request):
-        instance = get_object_or_404(User, pk=request.user.id)
-        self.serializer_class = MeSerializer
-        serializer = self.get_serializer(instance=instance)
+        serializer = MeSerializer(instance=request.user)
         if request.method == 'PATCH':
             serializer.partial = True
             serializer.initial_data = request.data
@@ -49,58 +46,78 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class AuthViewSet(viewsets.ViewSet):
-    permission_classes = (AllowAny,)
-
-    @action(methods=['POST'], detail=False)
-    def signup(self, request):
-        confirmation_code = User.objects.make_random_password()
-        serializer = SignUpSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        try:
-            user, _ = User.objects.get_or_create(
-                username=serializer.validated_data['username'],
-                email=serializer.validated_data['email'],
-                defaults={'confirmation_code': confirmation_code}
-            )
-        except Exception as ex:
-            return Response({'detail': f'Внутренняя ошибка сервера \'{ex}\''},
-                            status=status.HTTP_400_BAD_REQUEST)
-        send_mail(
-            'confirmation code',
-            f'"confirmation_code":  {confirmation_code}',
-            None,  # DEFAULT_FROM_EMAIL добавлен в settings
-            [serializer.validated_data["email"]]
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def signup(request):
+    confirmation_code = User.objects.make_random_password()
+    serializer = SignUpSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    try:
+        user, _ = User.objects.update_or_create(
+            username=serializer.validated_data['username'],
+            email=serializer.validated_data['email'],
+            defaults={'confirmation_code': confirmation_code}
         )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    except IntegrityError as ex:
+        fail, field = ex.args and ex.args[0].split(': ')
+        if fail != 'UNIQUE constraint failed':
+            raise IntegrityError(ex)
+        return Response(
+            {'detail': UNIQUE_ERROR.format(field.split('.')[1])},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    send_mail(
+        'confirmation code',
+        f'"confirmation_code": "{confirmation_code}"',
+        None,  # DEFAULT_FROM_EMAIL добавлен в settings
+        [serializer.validated_data["email"]]
+    )
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(methods=['POST'], detail=False)
-    def token(self, request):
-        serializer = TokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = get_object_or_404(
-            User,
-            username=serializer.validated_data['username'])
-        if (not serializer.validated_data['confirmation_code']
-                == user.confirmation_code):
-            raise ValidationError({'detail': 'Неверный код подтверждения.'})
 
-        serializer.validated_data['token'] = get_tokens_for_user(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def token(request):
+    serializer = TokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(
+        User,
+        username=serializer.validated_data['username'])
+    if (not serializer.validated_data['confirmation_code']
+            == user.confirmation_code):
+        raise ValidationError({'detail': 'Неверный код подтверждения.'})
+
+    return Response({'token': str(get_tokens_for_user(user))})
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Cast(
         Round(Avg('reviews__score')), IntegerField()
-    )).order_by('id')
+    ))
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filterset_class = TitleFilter
+    ordering = ['name']
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return TitleGetSerializer
         return TitleSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        return Response(
+            TitleGetSerializer(instance=instance).data,
+            status=status.HTTP_201_CREATED
+        )
+
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    def get_serializer(self, *args, **kwargs):
+        return super().get_serializer(*args, **kwargs)
 
 
 class CategoryGenreBase(mixins.CreateModelMixin, mixins.DestroyModelMixin,

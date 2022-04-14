@@ -26,12 +26,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'django_filters',
-    'users.apps.UsersConfig',
     'reviews.apps.ReviewsConfig',
     'api.apps.ApiConfig',
 ]
 
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = 'reviews.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -133,6 +132,7 @@ SIMPLE_JWT = {
 }
 LENGTH_CONFORMATION_CODE = 8
 
-MIN_SCORE = 1
-MAX_SCORE = 10
-MIN_TITLE_YEAR = 0
+REVIEWS = {
+    'MIN_SCORE': 1,
+    'MAX_SCORE': 10,
+}

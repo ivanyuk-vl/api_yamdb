@@ -73,7 +73,7 @@ def create_objects(model_class, file_path):
             return model_class.objects.bulk_create(objs, len(objs))
 
         except Exception as ex:
-            raise Exception(f'Ошибка звписи объектов в базу: {ex}')
+            raise Exception(f'Ошибка записи объектов в базу: {ex}')
 
 
 class Command(BaseCommand):
